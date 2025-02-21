@@ -1,15 +1,31 @@
 import flwr as fl
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
 import joblib
-import pickle
 
-# Load preprocessed data
-df = pd.read_csv("processed_data.csv")
-X_train = df.drop(columns=["Disease"])
-y_train = df["Disease"]
+# Load the dataset
+data = pd.read_csv("train_data.csv")
 
-# Define model
+# Preprocess the data
+# Extract features (Symptoms) and labels (Name)
+X = data["Symptoms"]  # Features (text data)
+y = data["Name"]      # Labels (disease names)
+
+# Convert text symptoms into numerical features using TF-IDF
+vectorizer = TfidfVectorizer(max_features=1000)  # Adjust max_features as needed
+X_train = vectorizer.fit_transform(X).toarray()
+
+# Encode the labels (disease names) into numerical values
+label_encoder = LabelEncoder()
+y_train = label_encoder.fit_transform(y)
+
+# Save the vectorizer and label encoder for future use
+joblib.dump(vectorizer, "tfidf_vectorizer.pkl")
+joblib.dump(label_encoder, "label_encoder.pkl")
+
+# Define the model
 model = DecisionTreeClassifier()
 
 class FlowerClient(fl.client.NumPyClient):
@@ -34,6 +50,6 @@ class FlowerClient(fl.client.NumPyClient):
 # Start the client with the correct method
 if __name__ == "__main__":
     fl.client.start_numpy_client(
-        server_address="192.168.137.194:8080",  # ✅ Replace with actual main node IP
+        server_address="192.168.137.194:8080",  # Replace with actual main node IP
         client=FlowerClient()
     )

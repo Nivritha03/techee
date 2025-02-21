@@ -1,39 +1,49 @@
 import joblib
-import pandas as pd
-import pickle
 
-# Load the trained model
+# Load the trained model, vectorizer, and label encoder
 model = joblib.load("trained_model.pkl")
+vectorizer = joblib.load("tfidf_vectorizer.pkl")
+label_encoder = joblib.load("label_encoder.pkl")
 
-# Load feature names (to ensure input data matches model training)
-with open("trained_model.pkl", "rb") as f:
-    feature_names = pickle.load(f)
+def predict_disease(symptoms):
+    """
+    Predict the disease based on the given symptoms.
 
-def get_user_input():
-    """Get symptoms from user as input flags."""
-    print("\n💡 Enter symptoms as comma-separated values (e.g., fever,cough).")
-    print("🔍 Available Symptoms:", ", ".join(feature_names))
+    Args:
+        symptoms (str): A string containing the symptoms.
+
+    Returns:
+        str: The predicted disease.
+    """
+    # Preprocess the input symptoms
+    symptoms_vectorized = vectorizer.transform([symptoms]).toarray()
+
+    # Predict the disease
+    predicted_label = model.predict(symptoms_vectorized)
+
+    # Decode the predicted label to get the disease name
+    predicted_disease = label_encoder.inverse_transform(predicted_label)
+    return predicted_disease[0]
+
+def main():
+    print("Welcome to the Disease Prediction System!")
+    print("Enter your symptoms (comma-separated):")
     
-    user_input = input("\n👉 Enter your symptoms: ").strip().lower().split(",")
+    # Take input from the user
+    input_symptoms = input("Symptoms: ").strip()
 
-    # Create a dictionary with all symptoms set to 0
-    symptoms_dict = {feature: 0 for feature in feature_names}
+    # Ensure the input is not empty
+    if not input_symptoms:
+        print("Error: No symptoms entered. Please try again.")
+        return
 
-    # Update symptoms present in the user's input
-    for symptom in user_input:
-        symptom = symptom.strip()
-        if symptom in symptoms_dict:
-            symptoms_dict[symptom] = 1  # Set present symptoms to 1
+    # Predict the disease
+    try:
+        predicted_disease = predict_disease(input_symptoms)
+        print(f"\nPredicted Disease: {predicted_disease}")
+    except Exception as e:
+        print(f"An error occurred during prediction: {e}")
 
-    return pd.DataFrame([symptoms_dict])  # Convert to DataFrame
-
-def predict_disease():
-    """Predict disease based on user symptoms."""
-    symptoms_df = get_user_input()
-    prediction = model.predict(symptoms_df)
-    print("\n🩺 Predicted Disease:", prediction[0])
-
-# Run interactive prediction
+# Run the program
 if __name__ == "__main__":
-    print("\n💡 Welcome to the AI Disease Predictor!")
-    predict_disease()
+    main()
