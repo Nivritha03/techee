@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocAI Chat</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; }
+        .container { height: 100vh; display: flex; flex-direction: column; padding: 20px; }
+        .conversation { flex: 1; padding: 10px; background-color: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
+        .user-input { margin-top: 20px; padding: 10px; background-color: #fff; border: 1px solid #ddd; border-radius: 10px; }
+        #chat-input { width: 80%; height: 50px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 18px; }
+        #send-btn { height: 50px; width: 20%; background-color: #4CAF50; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        #send-btn:hover { background-color: #3e8e41; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DocAI Chat</h1>
+        <div class="conversation" id="conversation"></div>
+        <div class="user-input">
+            <input type="text" id="chat-input" placeholder="Type your message here...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+           $('#send-btn').on('click', function(){
+                var userInput = $('#chat-input').val();
+                if(userInput !== '') {
+                    displayMessage('You', userInput);
+                    getAIResponse(userInput).then(response => {
+                        displayMessage('DocAI', response);
+                    });
+                    $('#chat-input').val('');
+                }
+            });
+
+            $('#chat-input').on('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    $('#send-btn').trigger('click');
+                }
+            });
+
+            function displayMessage(sender, message) {
+                var messageHTML = '<p><strong>' + sender + ':</strong> ' + message + '</p>';
+                $('#conversation').append(messageHTML);
+                $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+            }
+
+            function getAIResponse(input) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve('DocAI response to: ' + input);
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
